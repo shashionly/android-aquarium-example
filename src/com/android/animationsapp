@@ -1,0 +1,165 @@
+package com.shashi.android.animationsapp;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+
+import android.view.Menu;
+import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnTouchListener;
+import android.view.Window;
+import android.view.WindowManager;
+
+
+public class MainActivity extends Activity implements OnTouchListener {
+
+  OurView v;
+	Bitmap fish;
+	Bitmap bg;
+	float x, y;
+	int width, height;
+	Matrix matrix;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		fish = BitmapFactory.decodeResource(getResources(), R.drawable.fish);
+		bg = BitmapFactory.decodeResource(getResources(),
+				R.drawable.waterbackground);
+		v = new OurView(this);
+		setContentView(v);
+		v.setOnTouchListener(this);
+		x = 0;
+		y = (float) Math.random();
+		width = 300;
+		height = 200;
+
+	}
+
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		v.pause();
+	}
+
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		v.resume();
+	}
+
+	public class OurView extends SurfaceView implements Runnable {
+
+	
+		Thread t = null;
+		SurfaceHolder holder;
+		boolean isitOK = false;
+		String Flag = "right";
+		Bitmap rotatedBitmap=null;
+		Matrix rotateRight = new Matrix();
+		Matrix rotateLeft = new Matrix();
+		Bitmap rSprite=null;
+		Bitmap lSprite=null;
+		public OurView(Context context) {
+			super(context);
+			holder = getHolder();
+			rotateLeft.setScale(-1, 1);
+		
+			
+			 rSprite = Bitmap.createBitmap(fish, 0, 0,
+					fish.getWidth(), fish.getHeight(), rotateRight, true);
+			 lSprite = Bitmap.createBitmap(fish, 0, 0,
+					fish.getWidth(), fish.getHeight(), rotateLeft, true);
+		}
+		
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+
+			while (isitOK == true) {
+				if (!holder.getSurface().isValid()) {
+					continue;
+				}
+				Canvas canvas = holder.lockCanvas();
+				// canvas.drawARGB(255, 150, 150, 10);
+				canvas.drawBitmap(bg, 0, 0, null);
+				if(Flag == "right")
+				canvas.drawBitmap(lSprite, x, y, null);
+				//canvas.drawBitmap(rSprite, x, y, null);
+				if(Flag == "left")
+				canvas.drawBitmap(fish, x, y, null);	
+				//canvas.drawBitmap(lSprite, x, y, null);
+					if (Flag == "right" && x <= 60) {
+						
+						x++;
+						if (x == 60) {
+						System.out.println("sureshhhhhhhhhhhhhhhhhhhhhh");
+							Flag = "left";
+						//	canvas.drawBitmap(rSprite, 0, fish.getWidth(), null);
+							canvas.drawBitmap(fish, x, y, null);	
+						}
+					}				
+					if (Flag == "left" && x >= 0) {
+						x--;
+						if (x == 0) {
+						Flag = "right";
+					
+						canvas.drawBitmap(fish, x, y, null);
+						}
+					}
+					
+				
+				
+
+				holder.unlockCanvasAndPost(canvas);
+				
+
+			
+			}
+		}
+
+		public void pause() {
+			isitOK = false;
+			while (true) {
+				try {
+					t.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		public void resume() {
+			isitOK = true;
+			t = new Thread(this);
+			t.start();
+		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		// TODO Auto-generated method stub
+
+		return true;
+	}
+
+}
